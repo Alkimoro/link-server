@@ -1,0 +1,60 @@
+http:
+  port: 8080
+server:
+  port: 8443
+  ssl:
+    key-alias: server
+    key-store: classpath:ssl/server.jks
+    key-store-type: JKS
+    key-password: 758481
+    key-store-password: 758481
+    trust-store: classpath:ssl/servertruststore.jks
+    trust-store-type: JKS
+    trust-store-password: 758481
+  servlet:
+    context-path: /link
+    encoding.charset: utf-8
+    session:
+      timeout: 10m
+
+chat-server:
+  host: 127.0.0.1
+  port: 8090
+  backlog: 1024
+  workThreadNum: 50
+  heartbeatIdle: 60
+  lengthFieldLength: 2
+  #10kb
+  maxContentLength: 10240
+
+spring:
+  datasource:
+    username: kimoro
+    password: 758481
+    url: jdbc:mysql://localhost:3306/link?useUnicode=true&characterEncoding=utf8&userSSL=false&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data.mongodb:
+    uri: mongodb://localhost:27017/link?maxpoolsize=100&minpoolsize=10&maxidletimems=600000&maxlifetimems=1800000
+  redis:
+    host: localhost
+    port: 7333
+    timeout: 3000 #连接超时
+    jedis:
+      pool:
+        max-wait: 30000 #连接池最大阻塞等待时间 负值为无限
+        max-active: 100 #连接池最大连接数
+        max-idle: 20 #连接池最大空闲连接数
+        min-idle: 0 #连接池最小空闲连接数
+
+mybatis:
+  mapper-locations: classpath:mapping/*Mapper.xml
+  #mapper使用自定义实体时 该目录下的实体不用写全限定名
+  type-aliases-package: cn.linked.link.entity
+  #开启驼峰命名映射 实体属性/数据库字段
+  configuration:
+    map-underscore-to-camel-case: true
+
+#showSql
+logging:
+  level:
+    cn.linked.link.dao: debug

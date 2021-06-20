@@ -27,7 +27,7 @@ public class LoginInterceptorHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //todo 检查用户Session是否有效 无效则拦截 有效则重置过期时间
-        NetworkData message=(NetworkData) msg;
+        NetworkData<?> message=(NetworkData<?>) msg;
         AppSession session=appSessionRepository.getSession(message.getSessionId());
         if(session==null||session.isExpired()) {
             if(session!=null) {

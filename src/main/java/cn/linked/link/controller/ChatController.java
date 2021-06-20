@@ -3,7 +3,6 @@ package cn.linked.link.controller;
 import cn.linked.link.entity.ChatMessage;
 import cn.linked.link.entity.HttpResult;
 import cn.linked.link.service.ChatService;
-import com.alibaba.fastjson.JSON;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +24,11 @@ public class ChatController {
     private ChatService chatService;
 
     @PostMapping("/getChatMessage")
-    public HttpResult getChatMessage(String groupId, Long maxSequenceNumber, Integer num) {
+    public HttpResult<List<ChatMessage>> getChatMessage(String groupId, Long maxSequenceNumber, Integer num) {
         List<ChatMessage> messageList = chatService.getChatMessage(groupId, maxSequenceNumber, num);
-        HttpResult httpResult = new HttpResult();
+        HttpResult<List<ChatMessage>> httpResult = new HttpResult<>();
         httpResult.setCode(HttpResult.CODE_SUCCESS);
-        httpResult.setData(JSON.toJSONString(messageList));
+        httpResult.setData(messageList);
         return httpResult;
     }
 

@@ -36,9 +36,9 @@ public class ChannelTest extends ChannelInitializer<SocketChannel> {
 
     @Test
     public void startUser1() {
-        String sessionId = "6ed5ff66-1d53-4f65-a6cf-10fb4103e206";
+        String sessionId = "b20d69fa-7898-4bd2-92b5-de931f7706cd";
         Channel channel = prepare(); assert channel != null;
-        NetworkData data = new NetworkData();
+        NetworkData<Object> data = new NetworkData<>();
         data.setCode(NetworkData.CODE_BIND_USER);
         data.setSessionId(sessionId);
         System.out.println(data.toJsonString());
@@ -46,7 +46,7 @@ public class ChannelTest extends ChannelInitializer<SocketChannel> {
         new Thread(()->{
             try {
                 Thread.sleep(2000);
-                NetworkData chatMsg = new NetworkData();
+                NetworkData<ChatMessage> chatMsg = new NetworkData<>();
                 chatMsg.setCode(NetworkData.CODE_CHAT_MSG);
                 chatMsg.setSessionId(sessionId);
                 ChatMessage message = new ChatMessage();
@@ -65,9 +65,9 @@ public class ChannelTest extends ChannelInitializer<SocketChannel> {
 
     @Test
     public void startUser2() {
-        String sessionId = "a354b80d-1e02-4301-995f-3b3692ec86c3";
+        String sessionId = "965213fb-0f0a-42d2-aff6-b676fc0fd72a";
         Channel channel = prepare(); assert channel != null;
-        NetworkData data = new NetworkData();
+        NetworkData<Object> data = new NetworkData<>();
         data.setCode(NetworkData.CODE_BIND_USER);
         data.setSessionId(sessionId);
         System.out.println(data.toJsonString());
@@ -93,7 +93,7 @@ public class ChannelTest extends ChannelInitializer<SocketChannel> {
                 if (evt instanceof IdleStateEvent) {
                     IdleState state = ((IdleStateEvent) evt).state();
                     if (state == IdleState.WRITER_IDLE) {
-                        NetworkData data = new NetworkData();
+                        NetworkData<Object> data = new NetworkData<>();
                         data.setCode(NetworkData.CODE_HEARTBEAT);
                         data.setSessionId("177756c8-6a71-4e2b-b2f0-5207dff6567b");
                         System.out.println("发送心跳:"+data.toJsonString());

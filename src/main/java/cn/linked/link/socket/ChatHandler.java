@@ -38,7 +38,7 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        NetworkData message = (NetworkData) msg;
+        NetworkData<?> message = (NetworkData<?>) msg;
         log.info("服务器收到消息:{}", message.toJsonString());
         if(message.getCode() == NetworkData.CODE_CHAT_MSG) {
             ChatMessage chatMessage = JSON.toJavaObject((JSONObject) message.getData(), ChatMessage.class);

@@ -1,7 +1,6 @@
 package cn.linked.link.socket;
 
 import cn.linked.link.entity.NetworkData;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,7 +20,7 @@ public class HeartbeatListenHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
-            NetworkData message = (NetworkData) msg;
+            NetworkData<?> message = (NetworkData<?>) msg;
             if(message.getCode() == NetworkData.CODE_HEARTBEAT) {
                 log.info("服务器收到心跳:{}", message.toJsonString());
             }else {

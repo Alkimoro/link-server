@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter@Setter
-public class HttpResult {
+public class HttpResult<T> {
 
     public static final int CODE_SUCCESS = 1000;
     public static final int CODE_FAIL = 1001;
@@ -19,6 +19,6 @@ public class HttpResult {
 
     private String msg;
     private String redirectURI;
-    private Object data;
+    private T data;
 
 }

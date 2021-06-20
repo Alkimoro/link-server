@@ -4,7 +4,6 @@ import cn.linked.link.component.AppSessionRepository;
 import cn.linked.link.entity.HttpResult;
 import cn.linked.link.entity.User;
 import cn.linked.link.service.UserService;
-import com.alibaba.fastjson.JSON;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +30,12 @@ public class UserController {
     private AppSessionRepository appSessionRepository;
 
     @PostMapping("/login")
-    public HttpResult login(Long userId, String password, HttpServletRequest request) {
-        HttpResult result=new HttpResult();
+    public HttpResult<User> login(Long userId, String password, HttpServletRequest request) {
+        HttpResult<User> result=new HttpResult<>();
         User user = userService.login(userId,password);
         if(user != null) {
             result.setCode(HttpResult.CODE_SUCCESS);
-            result.setData(JSON.toJSONString(user));
+            result.setData(user);
             HttpSession session=request.getSession(true);
             log.info("userId:{},sessionId:{}",userId,session.getId());
             session.setAttribute(User.STRING_KEY_ID,userId);
@@ -48,8 +47,8 @@ public class UserController {
     }
 
     @PostMapping("/isSessionInvalid")
-    public HttpResult isSessionInvalid(String sessionId) {
-        HttpResult result=new HttpResult();
+    public HttpResult<Boolean> isSessionInvalid(String sessionId) {
+        HttpResult<Boolean> result=new HttpResult<>();
         if(sessionId==null||appSessionRepository.getSession(sessionId).isExpired()) {
             result.setCode(HttpResult.CODE_SUCCESS);
             result.setData(true);

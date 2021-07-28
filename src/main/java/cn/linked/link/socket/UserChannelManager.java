@@ -27,7 +27,7 @@ public class UserChannelManager {
             UserChannel userChannel = userChannelMap.get(userId);
             if(userChannel!=null) {
                 userChannelMap.remove(userId);
-                userChannel.close();
+                userChannel.removeChannel();
             }
         }
     }
@@ -36,7 +36,7 @@ public class UserChannelManager {
         UserChannel userChannel=userChannelMap.get(userId);
         if(userChannel!=null) {
             if(userChannel.getChannel()!=null) {
-                userChannel.getChannel().close();
+                userChannel.getChannel().disconnect();
             }
         }else {
             userChannel=new UserChannel(userId);
@@ -45,7 +45,7 @@ public class UserChannelManager {
         Channel channel=ctx.channel();
         AttributeKey<Long> userIdKey=AttributeKey.valueOf("userId");
         channel.attr(userIdKey).set(userId);
-        userChannel.setChannelContext(ctx.channel());
+        userChannel.setChannel(ctx.channel());
     }
 
 }

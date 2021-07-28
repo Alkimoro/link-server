@@ -35,6 +35,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   data.mongodb:
     uri: mongodb://localhost:27017/link?maxpoolsize=100&minpoolsize=10&maxidletimems=600000&maxlifetimems=1800000
+    autoInc:
+      uri: mongodb://localhost:27017/auto_inc?maxpoolsize=100&minpoolsize=10&maxidletimems=600000&maxlifetimems=1800000
   redis:
     host: localhost
     port: 7333

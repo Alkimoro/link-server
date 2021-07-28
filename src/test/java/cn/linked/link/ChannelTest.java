@@ -36,7 +36,7 @@ public class ChannelTest extends ChannelInitializer<SocketChannel> {
 
     @Test
     public void startUser1() {
-        String sessionId = "b20d69fa-7898-4bd2-92b5-de931f7706cd";
+        String sessionId = "636dae7e-6d94-4c1b-b56e-99a4301a4169";
         Channel channel = prepare(); assert channel != null;
         NetworkData<Object> data = new NetworkData<>();
         data.setCode(NetworkData.CODE_BIND_USER);
@@ -50,9 +50,9 @@ public class ChannelTest extends ChannelInitializer<SocketChannel> {
                 chatMsg.setCode(NetworkData.CODE_CHAT_MSG);
                 chatMsg.setSessionId(sessionId);
                 ChatMessage message = new ChatMessage();
-                message.setGroupId("60c56ce02e494a68c27645cb");
-                message.setOwner(100001L);
-                message.setMessage("你好");
+                message.setGroupId("60e7b5248393377c91042f52");
+                message.setOwner(100002L);
+                message.setMessage("测试222222");
                 chatMsg.setData(message);
                 System.out.println(chatMsg.toJsonString());
                 channel.writeAndFlush(chatMsg.toJsonString());

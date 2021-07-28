@@ -11,19 +11,15 @@ public class UserChannel {
     private Long userId;
     private WeakReference<Channel> channel;
 
-    public void setChannelContext(Channel channel) {
+    public void setChannel(Channel channel) {
         this.channel=new WeakReference<>(channel);
     }
 
-    public void close() {
+    public void removeChannel() {
         if(channel!=null) {
             channel.clear();
             channel=null;
         }
-    }
-
-    public Channel getChannelContext() {
-        return channel.get();
     }
 
     public Channel getChannel() {

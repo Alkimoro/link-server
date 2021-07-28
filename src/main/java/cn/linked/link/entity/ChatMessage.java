@@ -26,6 +26,7 @@ public class ChatMessage {
     @Field(targetType = FieldType.OBJECT_ID)
     private String groupId;
 
+    // 从 1 开始
     private Long sequenceNumber;
     private String message;
     private Date sendTime;

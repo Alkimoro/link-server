@@ -59,4 +59,12 @@ public class UserController {
         return result;
     }
 
+    @PostMapping("/getUserById")
+    public HttpResult<User> getUserById(Long id) {
+        HttpResult<User> httpResult = new HttpResult<>();
+        httpResult.setCode(HttpResult.CODE_SUCCESS);
+        httpResult.setData(userService.getUserById(id));
+        return httpResult;
+    }
+
 }

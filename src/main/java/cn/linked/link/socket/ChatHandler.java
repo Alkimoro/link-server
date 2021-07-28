@@ -50,6 +50,7 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.info("Channel inactive");
         AttributeKey<Long> userIdKey=AttributeKey.valueOf(User.STRING_KEY_ID);
         Long userId=ctx.channel().attr(userIdKey).get();
         manager.unBind(userId);

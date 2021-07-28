@@ -26,22 +26,26 @@ public class LoginInterceptorHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //todo 检查用户Session是否有效 无效则拦截 有效则重置过期时间
-        NetworkData<?> message=(NetworkData<?>) msg;
-        AppSession session=appSessionRepository.getSession(message.getSessionId());
-        if(session==null||session.isExpired()) {
-            if(session!=null) {
+        NetworkData<?> message = (NetworkData<?>) msg;
+        AppSession session = appSessionRepository.getSession(message.getSessionId());
+        if(session == null || session.isExpired()) {
+            if(session != null) {
                 long userId = session.getUserId();
                 ctx.writeAndFlush(NetworkData.sessionInvalid(message.getSessionId()));
                 userSocketManager.unBind(userId);
-            }else {
-                ctx.disconnect();
             }
+            ctx.disconnect();
         }else {
             session.setLastAccessedTime(System.currentTimeMillis());
-            AttributeKey<Long> userIdKey=AttributeKey.valueOf(User.STRING_KEY_ID);
+            AttributeKey<Long> userIdKey = AttributeKey.valueOf(User.STRING_KEY_ID);
+            // channel 不能重复绑定
             if(message.getCode() == NetworkData.CODE_BIND_USER && !ctx.channel().hasAttr(userIdKey)) {
                 long userId = session.getUserId();
+                NetworkData<Boolean> bindAck = new NetworkData<>();
+                bindAck.setCode(NetworkData.CODE_BIND_ACK);
+                bindAck.setData(true);
+                ctx.channel().writeAndFlush(bindAck.toJsonString());
+                // 保证bindAck是Client第一个收到的消息
                 userSocketManager.bind(userId, ctx);
             }else {
                 super.channelRead(ctx, msg);

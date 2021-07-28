@@ -1,10 +1,13 @@
 package cn.linked.link.dao;
 
+import cn.linked.link.component.AutoIncTool;
 import cn.linked.link.entity.ChatGroup;
 import cn.linked.link.entity.ChatGroupMember;
-import cn.linked.link.entity.ChatGroupSequenceInc;
+import cn.linked.link.entity.ChatGroupType;
 import cn.linked.link.entity.ChatMessage;
+import lombok.NonNull;
 import lombok.Setter;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Setter
@@ -28,11 +32,17 @@ public class MongoChatDao {
     @Resource
     private MongoTemplate mongoTemplate;
 
-    public ChatGroup findChatGroupById(String groupId) {
+    @Resource
+    private AutoIncTool autoIncTool;
+
+    public ChatGroup findChatGroupWithMemberById(String groupId) {
         Query query=new Query(Criteria.where("id").is(groupId));
         return mongoTemplate.findOne(query,ChatGroup.class,"chat_group");
     }
 
+    /**
+     *  num < 0 默认拉取 1 ~ maxSequenceNumber的所有数据
+     * */
     public List<ChatMessage> findChatMessage(String groupId, Long maxSequenceNumber, Integer num) {
         List<ChatMessage> result = new ArrayList<>();
         Query query = null;
@@ -46,14 +56,17 @@ public class MongoChatDao {
         }
         // 降序排列
         query.with(Sort.by(Sort.Direction.DESC,"sequenceNumber"));
-        query.limit(num);
+        if(num >= 0) {
+            query.limit(num);
+        }
         result = mongoTemplate.find(query,ChatMessage.class,"chat_message");
         return result;
     }
 
     public ChatGroup addChatGroupMember(String groupId, ChatGroupMember member) {
-        if(groupId != null && member != null && member.getId() != null) {
-            Query query = new Query(Criteria.where("id").is(groupId).and("memberList.id").ne(member.getId()));
+        if(groupId != null && member != null && member.getUserId() != null) {
+            if(member.getAuthority() == null) { member.setAuthority(ChatGroupMember.AUTHORITY_NORMAL); }
+            Query query = new Query(Criteria.where("id").is(groupId).and("memberList.userId").ne(member.getUserId()));
             Update update = new Update();
             update.push("memberList",member);
             FindAndModifyOptions options = new FindAndModifyOptions();
@@ -66,20 +79,27 @@ public class MongoChatDao {
         return null;
     }
 
-    public ChatGroup addChatGroup(int type) {
+    public ChatGroup addChatGroup(ChatGroupType type) {
         ChatGroup chatGroup = new ChatGroup();
-        if(type == ChatGroup.TYPE_PRIVATE) {
-            chatGroup.setType(ChatGroup.TYPE_PRIVATE);
+        chatGroup.setCreateTime(new Date());
+        chatGroup.setLevel(1);
+        chatGroup.setName(ChatGroup.DEFAULT_NAME);
+        chatGroup.setMemberList(new ArrayList<>());
+        if(type.getIdType() == ChatGroup.ID_TYPE_OBJECT_ID) {
+            // 该类型的ChatGroup ID为ObjectID 对于用户是透明的
+            chatGroup.setId(new ObjectId().toString());
         }else {
-            chatGroup.setType(ChatGroup.TYPE_GROUP);
+            // 该类型的ChatGroup ID为自增ID 方便记忆和搜索
+            chatGroup.setId(autoIncTool.increase(AutoIncTool.KEY_CHAT_GROUP) + "");
         }
+        chatGroup.setType(type);
         return mongoTemplate.insert(chatGroup,"chat_group");
     }
 
     public void saveMessage(ChatMessage chatMessage) {
         if(chatMessage!=null) {
             chatMessage.setId(null);
-            Long sequenceNumber= ChatGroupSequenceInc.increase(chatMessage.getGroupId(), mongoTemplate);
+            Long sequenceNumber = autoIncTool.increase(chatMessage.getGroupId());
             chatMessage.setSequenceNumber(sequenceNumber);
             // 存储失败将会造成 该 chatGroup 的 sequenceNum 不连续
             try {
@@ -88,6 +108,51 @@ public class MongoChatDao {
                 log.warn("saveMessage failed message:{}", chatMessage);
             }
         }
+    }
+
+    public ChatGroup findChatGroupById(@NonNull String groupId) {
+        Query query = new Query(Criteria.where("id").is(groupId));
+        query.fields().exclude("memberList");
+        return mongoTemplate.findOne(query, ChatGroup.class);
+    }
+
+    public List<ChatGroup> findChatGroupByUserId(@NonNull Long userId) {
+        Query query = new Query(Criteria.where("memberList.userId").is(userId));
+        query.fields().exclude("memberList");
+        return mongoTemplate.find(query, ChatGroup.class);
+    }
+
+    public List<ChatGroupMember> findChatGroupMember(@NonNull String groupId) {
+        Query query = new Query(Criteria.where("id").is(groupId));
+        query.fields().include("memberList");
+        ChatGroup chatGroup = mongoTemplate.findOne(query, ChatGroup.class);
+        if(chatGroup != null) {
+            List<ChatGroupMember> memberList = chatGroup.getMemberList();
+            for(ChatGroupMember member : memberList) {
+                member.setGroupId(groupId);
+            }
+            return memberList;
+        }
+        return null;
+    }
+
+    public ChatGroupMember findUserChatGroupMember(@NonNull String groupId, @NonNull Long userId) {
+        Query query = new Query(Criteria.where("id").is(groupId).and("memberList.userId").is(userId));
+        query.fields().elemMatch("memberList", Criteria.where("userId").is(userId));
+        ChatGroup chatGroup = mongoTemplate.findOne(query, ChatGroup.class);
+        if(chatGroup != null && chatGroup.getMemberList() != null && chatGroup.getMemberList().size() == 1) {
+            ChatGroupMember member = chatGroup.getMemberList().get(0);
+            member.setGroupId(groupId);
+            return member;
+        }
+        return null;
+    }
+
+    public boolean setUserHaveReadMessageMaxSequenceNum(Long userId, String groupId, Long maxSequenceNum) {
+        Query query = new Query(Criteria.where("id").is(groupId).and("memberList.userId").is(userId));
+        Update update = new Update();
+        update.set("memberList.$.haveReadMessageMaxSequenceNum", maxSequenceNum);
+        return mongoTemplate.updateFirst(query, update, ChatGroup.class).getMatchedCount() == 1;
     }
 
 }

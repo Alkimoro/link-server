@@ -1,5 +1,6 @@
 package cn.linked.link.component;
 
+import cn.linked.link.entity.User;
 import cn.linked.link.exception.NoLoginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,13 +16,14 @@ public class LoginHandlerInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        HttpSession session=request.getSession(false);
-        log.info("RequestUIR:{}",request.getRequestURI());
-        if((request.getRequestURI().equals("/link/userController/isSessionInvalid"))
-                ||(request.getRequestURI().equals("/link/userController/login"))
-                ||(session!=null&&session.getAttribute("userId")!=null)) {
+        HttpSession session = request.getSession(false);
+        log.info("RequestUIR:{}", request.getRequestURI());
+        if ((request.getRequestURI().equals("/link/userController/isSessionInvalid"))
+                || (request.getRequestURI().equals("/link/userController/login"))
+                || (session != null && session.getAttribute(User.STRING_KEY_ID) != null)) {
             return true;
         }
+        log.info("Session Invalid RequestUIR:{}", request.getRequestURI());
         throw new NoLoginException();
     }
 
